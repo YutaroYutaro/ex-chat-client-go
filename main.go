@@ -27,7 +27,8 @@ func main() {
 	}
 
 	tcpConn, err := net.DialTCP("tcp", nil, tcpAddr)
-	defer tcpConn.Close()
+
+	go GetEcho(tcpConn)
 
 	stdin := bufio.NewScanner(os.Stdin)
 
@@ -36,15 +37,11 @@ func main() {
 
 		if echoContents == "exit" {
 			fmt.Println("connection close.")
+			tcpConn.Close()
 			break
 		}
 
 		SendEcho(tcpConn, echoContents)
-
-		echo := GetEcho(tcpConn)
-
-		println("echo: ", string(echo))
-		println("receive success.")
 	}
 }
 
@@ -58,15 +55,18 @@ func SendEcho(conn *net.TCPConn, msg string) {
 	}
 }
 
-func GetEcho(conn *net.TCPConn) string {
-	bufRecv := make([]byte, RecvBufLen)
+func GetEcho(conn *net.TCPConn) {
+	for {
+		bufRecv := make([]byte, RecvBufLen)
 
-	_, err := conn.Read(bufRecv)
+		_, err := conn.Read(bufRecv)
 
-	if err != nil {
-		println("error while receive response: ", err.Error())
-		return ""
+		if err != nil {
+			println("error while receive response: ", err.Error())
+			return
+		}
+
+		println("echo: ", string(bufRecv))
+		println("receive success.")
 	}
-
-	return string(bufRecv)
 }
