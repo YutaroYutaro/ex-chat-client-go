@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"os"
 )
@@ -26,25 +27,24 @@ func main() {
 	}
 
 	tcpConn, err := net.DialTCP("tcp", nil, tcpAddr)
+	defer tcpConn.Close()
 
 	stdin := bufio.NewScanner(os.Stdin)
 
 	for stdin.Scan() {
 		echoContents := stdin.Text()
 
+		if echoContents == "exit" {
+			fmt.Println("connection close.")
+			break
+		}
+
 		SendEcho(tcpConn, echoContents)
 
 		echo := GetEcho(tcpConn)
 
-		if string(echo) == "exit" {
-			println("echo: ", string(echo))
-			println("bye! ")
-			tcpConn.Close()
-			break
-		}
-
 		println("echo: ", string(echo))
-		println("receive success")
+		println("receive success.")
 	}
 }
 
