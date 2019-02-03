@@ -12,13 +12,6 @@ const (
 )
 
 func main() {
-	//if len(os.Args) == 1 {
-	//	println("need request parameter")
-	//	os.Exit(1)
-	//}
-	//
-	//echoContents := os.Args[1]
-
 	tcpAddr, err := net.ResolveTCPAddr("tcp", "localhost:8001")
 
 	if err != nil {
@@ -28,9 +21,14 @@ func main() {
 
 	tcpConn, err := net.DialTCP("tcp", nil, tcpAddr)
 
-	go GetEcho(tcpConn)
-
 	stdin := bufio.NewScanner(os.Stdin)
+
+	fmt.Println("please enter your name")
+	stdin.Scan()
+	name := stdin.Text()
+	SendEcho(tcpConn, name)
+
+	go GetEcho(tcpConn)
 
 	for stdin.Scan() {
 		echoContents := stdin.Text()
@@ -50,8 +48,6 @@ func SendEcho(conn *net.TCPConn, msg string) {
 
 	if err != nil {
 		println("error send request: ", err.Error())
-	} else {
-		println("request sent")
 	}
 }
 
@@ -62,11 +58,10 @@ func GetEcho(conn *net.TCPConn) {
 		_, err := conn.Read(bufRecv)
 
 		if err != nil {
-			println("error while receive response: ", err.Error())
+			fmt.Println("error while receive response: ", err.Error())
 			return
 		}
 
-		println("echo: ", string(bufRecv))
-		println("receive success.")
+		fmt.Println(string(bufRecv))
 	}
 }
